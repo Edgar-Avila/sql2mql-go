@@ -14,7 +14,8 @@ VALUES
 ("Johann", FALSE, 77),
 ("Amadeus", FALSE, 55)
 
-SELECT * FROM students 
+SELECT name FROM students 
+WHERE score >= 70 AND graduated = TRUE OR name = "Amadeus"
 ORDER BY score DESC
 LIMIT 3;
 

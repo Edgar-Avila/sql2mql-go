@@ -4,6 +4,7 @@ type SelectStmt struct {
 	Distinct bool       `parser:"'SELECT' 'DISTINCT'?"`
 	Cols     []string   `parser:"((@'*')|(@Ident (',' @Ident)*))"`
 	From     string     `parser:"'FROM' @Ident"`
+	Where    *Where     `parser:"@@?"`
 	GroupBy  []string   `parser:"('GROUP' 'BY' @Ident (',' @Ident)*)?"`
 	OrderBy  []SortSpec `parser:"('ORDER' 'BY' @@ (',' @@)*)?"`
 	Limit    int64      `parser:"('LIMIT' @Int)? ';'?"`

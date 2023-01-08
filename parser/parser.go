@@ -3,7 +3,7 @@ package parser
 import (
 	"log"
 	"os"
-	"participle-test/parser/insert"
+	"participle-test/parser/common"
 
 	"github.com/alecthomas/participle/v2"
 )
@@ -13,7 +13,7 @@ func NewParser() *participle.Parser[SqlFile] {
 	return participle.MustBuild[SqlFile](
 		SqlLexer(),
 		StatementUnion(),
-		insert.ValueUnion(),
+		common.ValueUnion(),
 		participle.CaseInsensitive("Ident"),
 	)
 }
@@ -32,5 +32,6 @@ func ParseFile(path string) *SqlFile {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return sqlFile
 }

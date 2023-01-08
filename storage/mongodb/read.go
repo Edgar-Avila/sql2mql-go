@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"participle-test/parser/query"
@@ -59,35 +60,129 @@ func Find(db *mongo.Database, selectStmt query.SelectStmt) []bson.M {
 	return results
 }
 
-func TranslateSelect(selectStmt query.SelectStmt) string {
-	// db.students.find({}, {_id: 0, name: 1}).sort({name: -1})
-	name := selectStmt.From
-	proj := ""
-	if selectStmt.Cols[0] != "*" {
-		projArr := []string{"_id: 0"}
-		for _, col := range selectStmt.Cols {
+func TranslateFactor(factor query.BoolFactor, surround bool) string {
+	translated := ""
+	if surround {
+		translated += "{"
+	}
+	if factor.Not {
+		translated += "$not:{"
+	}
+	translated += factor.Cmp.Col
+	translated += ":{"
+	if factor.Cmp.Op == "=" {
+		translated += "$eq:"
+	} else if factor.Cmp.Op == "<" {
+		translated += "$lt:"
+	} else if factor.Cmp.Op == ">" {
+		translated += "$gt:"
+	} else if factor.Cmp.Op == "<=" {
+		translated += "$lte:"
+	} else if factor.Cmp.Op == ">=" {
+		translated += "$gte:"
+	}
+	v := factor.Cmp.Lit.GetVal()
+	val, _ := json.Marshal(v)
+	translated += string(val)
+	translated += "}"
+	if factor.Not {
+		translated += "}"
+	}
+	if surround {
+		translated += "}"
+	}
+	return translated
+}
+
+func TranslateTerm(term query.BoolTerm, surround bool) string {
+	translated := ""
+	multipleFactors := len(term.Factors) > 1
+	if surround {
+		translated += "{"
+	}
+	if multipleFactors {
+		translated += "$and:["
+	}
+	andArr := make([]string, 0)
+	for _, factor := range term.Factors {
+		factorStr := TranslateFactor(factor, multipleFactors)
+		andArr = append(andArr, factorStr)
+	}
+	translated += strings.Join(andArr, ",")
+	if multipleFactors {
+		translated += "]"
+	}
+	if surround {
+		translated += "}"
+	}
+	return translated
+}
+
+func TranslateWhere(where *query.Where) string {
+	translated := ""
+	findArr := make([]string, 0)
+	if where != nil {
+		multipleTerms := len(where.Terms) > 1
+		obj := ""
+		if multipleTerms {
+			obj += "$or:["
+		}
+		orArr := make([]string, 0)
+		for _, term := range where.Terms {
+			termStr := TranslateTerm(term, multipleTerms)
+			orArr = append(orArr, termStr)
+		}
+		obj += strings.Join(orArr, ",")
+		if multipleTerms {
+			obj += "]"
+		}
+		findArr = append(findArr, obj)
+	}
+	translated = fmt.Sprintf("{%s}", strings.Join(findArr, ", "))
+
+	return translated
+}
+
+func TranslateProjection(cols []string) string {
+	projArr := make([]string, 0)
+	if cols[0] != "*" {
+		projArr = append(projArr, "_id: 0")
+		for _, col := range cols {
 			projArr = append(projArr, fmt.Sprintf("%s: 1", col))
 		}
-		proj = strings.Join(projArr, ", ")
 	}
-	translated := fmt.Sprintf("db.%s.find({%s})", name, proj)
+	return fmt.Sprintf("{%s}", strings.Join(projArr, ","))
+}
 
-	if len(selectStmt.OrderBy) > 0 {
+func TranslateSort(orderBy []query.SortSpec) string {
+	if len(orderBy) > 0 {
 		sortArr := make([]string, 0)
-		for _, spec := range selectStmt.OrderBy {
+		for _, spec := range orderBy {
 			dir := 1
 			if spec.Dir == "DESC" {
 				dir = -1
 			}
 			sortArr = append(sortArr, fmt.Sprintf("%s: %v", spec.Col, dir))
 		}
-		translated += fmt.Sprintf(".sort({%s})", strings.Join(sortArr, ", "))
+		return fmt.Sprintf(".sort({%s})", strings.Join(sortArr, ", "))
 	}
+	return ""
+}
 
-	if selectStmt.Limit > 0 {
-		translated += fmt.Sprintf(".limit(%v)", selectStmt.Limit)
+func TranslateLimit(limit int64) string {
+	if limit > 0 {
+		return fmt.Sprintf(".limit(%v)", limit)
 	}
-	translated += ";"
+	return ""
+}
 
+func TranslateSelect(selectStmt query.SelectStmt) string {
+	// db.students.find({}, {_id: 0, name: 1}).sort({name: -1})
+	name := selectStmt.From
+	proj := TranslateProjection(selectStmt.Cols)
+	find := TranslateWhere(selectStmt.Where)
+	sort := TranslateSort(selectStmt.OrderBy)
+	limit := TranslateLimit(selectStmt.Limit)
+	translated := fmt.Sprintf("db.%s.find(%s, %s)%s%s;", name, find, proj, sort, limit)
 	return translated
 }

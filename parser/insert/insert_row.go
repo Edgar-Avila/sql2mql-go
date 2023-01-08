@@ -1,5 +1,7 @@
 package insert
 
+import "participle-test/parser/common"
+
 type Row struct {
-	Values []Value `parser:"'(' @@ (',' @@)* ')'"`
+	Values []common.Value `parser:"'(' @@ (',' @@)* ')'"`
 }
