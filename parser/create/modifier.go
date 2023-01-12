@@ -7,15 +7,18 @@ import (
 	"strings"
 )
 
+// Mdoificador
 type Modifier int
 
+// Posibles valores del modificador (Enum)
 const (
 	PrimaryKey Modifier = iota
 	NotNull
 	Unique
 )
 
-// Capture value
+// Capturar el modificador, toma el string y
+// returna el enum Modifier
 func (cm *Modifier) Capture(values []string) error {
 	text := regexp.MustCompile(`\s+`).ReplaceAllString(values[0], " ")
 	if len(values) == 1 {
@@ -49,7 +52,7 @@ func (cm Modifier) String() string {
 	}
 }
 
-// Make modifier JSON serializable
+// Serializar el Modificador como JSON
 func (cm Modifier) MarshalJSON() ([]byte, error) {
 	return json.Marshal(cm.String())
 }

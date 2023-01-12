@@ -5,8 +5,12 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+// Lexer que no distinge mayusculas de minuscilas
 func SqlLexer() participle.Option {
 	sqlLexer := lexer.MustSimple([]lexer.SimpleRule{
+		// *******************************************
+		// Palabras clave
+		// *******************************************
 		{
 			Name:    `Into`,
 			Pattern: `(?i)INTO`,
@@ -23,6 +27,10 @@ func SqlLexer() participle.Option {
 			Name:    `Unique`,
 			Pattern: `(?i)UNIQUE`,
 		},
+
+		// *******************************************
+		// Tipos de datos
+		// *******************************************
 		{
 			Name:    `TextType`,
 			Pattern: `(?i)CHAR|VARCHAR|TEXT|TINYTEXT|MEDIUMTEXT|LONGTEXT`,
@@ -43,6 +51,10 @@ func SqlLexer() participle.Option {
 			Name:    `TimeType`,
 			Pattern: `(?i)DATE|DATETIME|TIMESTAMP|TIME|YEAR`,
 		},
+
+		// *******************************************
+		// Valores e identificadores
+		// *******************************************
 		{
 			Name:    `Ident`,
 			Pattern: `[a-zA-Z_][a-zA-Z0-9_]*`,
@@ -63,6 +75,10 @@ func SqlLexer() participle.Option {
 			Name:    `Bool`,
 			Pattern: `(?i)TRUE|FALSE`,
 		},
+
+		// *******************************************
+		// Operadores y punto y coma
+		// *******************************************
 		{
 			Name:    `Operator`,
 			Pattern: `<>|!=|<=|>=|[-+*/%,.()=<>]`,
@@ -71,6 +87,10 @@ func SqlLexer() participle.Option {
 			Name:    "Semicolon",
 			Pattern: ";",
 		},
+
+		// *******************************************
+		// Ignorar espacios en blanco
+		// *******************************************
 		{
 			Name:    "whitespace",
 			Pattern: `\s+`,

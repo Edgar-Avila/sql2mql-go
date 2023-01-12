@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// Devolver una estructura bien formateada para imprimir
 func Prettify(obj interface{}) string {
 	s, err := json.MarshalIndent(obj, "", "  ")
 	if err != nil {

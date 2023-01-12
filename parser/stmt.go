@@ -9,9 +9,15 @@ import (
 	"github.com/alecthomas/participle/v2"
 )
 
-// Statements
+// Una sentencia generica
 type Statement interface{ StmtType() string }
 
+// Union de todos los tipos de sentencias
 func StatementUnion() participle.Option {
-	return participle.Union[Statement](create.CreateStmt{}, drop.DropStmt{}, insert.InsertStmt{}, query.SelectStmt{})
+	return participle.Union[Statement](
+		create.CreateStmt{},
+		drop.DropStmt{},
+		insert.InsertStmt{},
+		query.SelectStmt{},
+	)
 }

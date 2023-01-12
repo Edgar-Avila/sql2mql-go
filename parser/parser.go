@@ -8,8 +8,8 @@ import (
 	"github.com/alecthomas/participle/v2"
 )
 
+// Crear el parser
 func NewParser() *participle.Parser[SqlFile] {
-
 	return participle.MustBuild[SqlFile](
 		SqlLexer(),
 		StatementUnion(),
@@ -18,20 +18,22 @@ func NewParser() *participle.Parser[SqlFile] {
 	)
 }
 
+// Parsear un archivo
 func ParseFile(path string) *SqlFile {
 	parser := NewParser()
 
-	// Open file
+	// Leer archivo
 	read, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Parse string
+	// Ejecutar el parseo
 	sqlFile, err := parser.ParseBytes("", read)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Devolver estructura parseada
 	return sqlFile
 }

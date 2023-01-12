@@ -20,10 +20,11 @@ var translateCmd = &cobra.Command{
 	Use:   "translate",
 	Short: "Translate SQL to Mongo",
 	Run: func(cmd *cobra.Command, args []string) {
+		// Parsear el archivo
 		filename, _ := cmd.Flags().GetString("file")
 		parsed := parser.ParseFile(filename)
 
-		// Translate and show
+		// Traducir segun el tipo de sentencia
 		for _, stmt := range parsed.Statements {
 			if stmt.StmtType() == "CREATE" {
 				createStmt := stmt.(create.CreateStmt)
@@ -45,14 +46,7 @@ var translateCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(translateCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// translateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
+	// Archivo a traducir
 	translateCmd.Flags().StringP("file", "f", "", "Name of the SQL file")
 	translateCmd.MarkFlagRequired("file")
 }

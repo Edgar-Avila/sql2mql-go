@@ -23,22 +23,22 @@ var executeCmd = &cobra.Command{
 	Use:   "execute",
 	Short: "Execute a Mongo query using a SQL file",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Flags
+		// Sacar los flags (Archivo, nombre de BD y URI)
 		filename, _ := cmd.Flags().GetString("file")
 		dbname, _ := cmd.Flags().GetString("dbname")
 		uri, _ := cmd.Flags().GetString("mongouri")
 
-		// Mongo database
+		// Conectar a mongo
 		ctx, f := context.WithTimeout(context.Background(), 10*time.Second)
 		defer f()
 		mongoClient := mongodb.NewClient(ctx, uri)
 		defer mongoClient.Disconnect(context.Background())
 		db := mongoClient.Database(dbname)
 
-		// Parse
+		// Parsear el archivo
 		parsed := parser.ParseFile(filename)
 
-		// Execute commands
+		// Seleccionar como traducir segun el tipo de sentencia
 		for _, stmt := range parsed.Statements {
 			if stmt.StmtType() == "CREATE" {
 				createStmt := stmt.(create.CreateStmt)
@@ -62,16 +62,15 @@ var executeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(executeCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// executeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
+	// Archivo a ejecutar
 	executeCmd.Flags().StringP("file", "f", "", "Name of the SQL file")
+
+	// Uri de la base de datos (Por defecto "mongodb://localhost:27017/")
 	executeCmd.Flags().StringP("mongouri", "u", "mongodb://localhost:27017/", "Uri for the Mongo database")
+
+	// Nombre de la base de datos (Por defecto "sqlql-test")
 	executeCmd.Flags().StringP("dbname", "d", "sqlmql-test", "Name of the database")
+
+	// El archivo es obligatorio
 	executeCmd.MarkFlagRequired("file")
 }

@@ -2,6 +2,7 @@ package query
 
 type Direction string
 
+// Direccion (Ascendente o descendente)
 func (d *Direction) Capture(values []string) error {
 	*d = "ASC"
 	if len(values) > 0 && values[0] == "DESC" {
@@ -10,8 +11,11 @@ func (d *Direction) Capture(values []string) error {
 	return nil
 }
 
-// Sort specification
+// Especificacion del orden que va en ORDER BY
 type SortSpec struct {
-	Col string    `parser:"@Ident"`
+	// Nombre de la columna (Identificador)
+	Col string `parser:"@Ident"`
+
+	// Es ascendente o descendente
 	Dir Direction `parser:"@(('ASC'|'DESC')?)"`
 }
